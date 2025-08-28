@@ -6,7 +6,7 @@ import resend
 
 app = FastAPI()
 
-# Allow CORS from all origins
+# Enable CORS for all origins (useful for frontend apps calling this API)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,9 +15,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load API key from environment variable
+# Load Resend API key from environment variable
 resend.api_key = os.getenv("RESEND_API_KEY")
 
+# Request model
 class EmailRequest(BaseModel):
     to: EmailStr
     subject: str
@@ -27,7 +28,7 @@ class EmailRequest(BaseModel):
 async def send_email(email: EmailRequest):
     try:
         params: resend.Emails.SendParams = {
-            "from": "Your Name <you@yourverifieddomain.com>",  # must be verified in Resend
+            "from": "Resend <onboarding@resend.dev>",  # using Resend's test domain
             "to": [email.to],
             "subject": email.subject,
             "html": email.html,
