@@ -33,13 +33,15 @@ class EmailRequest(BaseModel):
 @app.post("/send-email")
 def send_email(email: EmailRequest):
     try:
-        # ✅ Correct usage: pass kwargs, not dict
-        response = resend.Emails.send(
-            from_="Resend <onboarding@resend.dev>",
-            to=[email.to],
-            subject=email.subject,
-            html=email.html,
-        )
+        # ✅ Correct for older SDK
+        params: resend.Emails.SendParams = {
+            "from": "Resend <onboarding@resend.dev>",
+            "to": [email.to],
+            "subject": email.subject,
+            "html": email.html,
+        }
+
+        response = resend.Emails.send(params)
         return {"success": True, "response": response}
     except Exception as e:
         print("❌ ERROR:", traceback.format_exc())
