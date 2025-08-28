@@ -7,7 +7,7 @@ import traceback
 
 app = FastAPI()
 
-# Enable CORS for all origins
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,15 +16,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load Resend API key
+# Configure Resend API key
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 if not RESEND_API_KEY:
-    print("⚠️ WARNING: RESEND_API_KEY not set in environment!")
+    print("⚠️ ERROR: RESEND_API_KEY not set in environment!")
 else:
     resend.api_key = RESEND_API_KEY
 
 
-# Request model
 class EmailRequest(BaseModel):
     to: EmailStr
     subject: str
@@ -34,13 +33,13 @@ class EmailRequest(BaseModel):
 @app.post("/send-email")
 def send_email(email: EmailRequest):
     try:
-        params: resend.Emails.SendParams = {
-            "from": "Resend <onboarding@resend.dev>",  # must use Resend verified domain
-            "to": [email.to],
-            "subject": email.subject,
-            "html": email.html,
-        }
-        response = resend.Emails.send(params)
+        # ✅ Correct usage: pass kwargs, not dict
+        response = resend.Emails.send(
+            from_="Resend <onboarding@resend.dev>",
+            to=[email.to],
+            subject=email.subject,
+            html=email.html,
+        )
         return {"success": True, "response": response}
     except Exception as e:
         print("❌ ERROR:", traceback.format_exc())
