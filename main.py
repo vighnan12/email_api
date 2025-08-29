@@ -7,16 +7,16 @@ import traceback
 
 app = FastAPI()
 
-# Enable CORS
+# Enable CORS for frontend usage
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure Resend API key
+# Load Resend API Key
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 if not RESEND_API_KEY:
     print("⚠️ ERROR: RESEND_API_KEY not set in environment!")
@@ -24,6 +24,7 @@ else:
     resend.api_key = RESEND_API_KEY
 
 
+# Request model
 class EmailRequest(BaseModel):
     to: EmailStr
     subject: str
@@ -33,18 +34,22 @@ class EmailRequest(BaseModel):
 @app.post("/send-email")
 def send_email(email: EmailRequest):
     try:
+        # ✅ Send email with Resend
         response = resend.Emails.send({
-            "from": "Resend <onboarding@resend.dev>",  # only works in sandbox
-            "to": email.to,
+            "from": "onboarding@resend.dev",   # Sandbox sender
+            "to": [email.to],
             "subject": email.subject,
             "html": email.html,
         })
+
         return {"success": True, "response": response}
+
     except Exception as e:
-        print("❌ ERROR:", traceback.format_exc())
-        return {"success": False, "error": str(e)}
+        tb = traceback.format_exc()
+        print("❌ ERROR:", tb)
+        return {"success": False, "error": str(e), "traceback": tb}
 
 
 @app.get("/")
 def root():
-    return {"message": "🚀 Resend Email API running!"}
+    return {"message": "🚀 Resend Email API is running!"}
