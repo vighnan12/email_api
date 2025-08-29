@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+=from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 import os
@@ -33,15 +33,12 @@ class EmailRequest(BaseModel):
 @app.post("/send-email")
 def send_email(email: EmailRequest):
     try:
-        # ✅ Correct for older SDK
-        params: resend.Emails.SendParams = {
-            "from": "Resend <onboarding@resend.dev>",
-            "to": [email.to],
+        response = resend.Emails.send({
+            "from": "Resend <onboarding@resend.dev>",  # only works in sandbox
+            "to": email.to,
             "subject": email.subject,
             "html": email.html,
-        }
-
-        response = resend.Emails.send(params)
+        })
         return {"success": True, "response": response}
     except Exception as e:
         print("❌ ERROR:", traceback.format_exc())
